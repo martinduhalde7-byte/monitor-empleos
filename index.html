@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monitor de Empleos · Aduana</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0f0f13;
+  --surface: #18181f;
+  --surface2: #22222c;
+  --border: #2e2e3a;
+  --accent: #c8a96e;
+  --text: #e8e8f0;
+  --muted: #7a7a90;
+  --uba: #c8a96e;
+  --zona: #5b9cf6;
+  --bumeran: #5dd9a4;
+  --error: #f27575;
+  --ok: #5dd9a4;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  padding: 32px 20px 60px;
+}
+
+.app { max-width: 820px; margin: 0 auto; }
+
+/* HEADER */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.header h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2rem;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.header h1 span { color: var(--accent); }
+.header p { color: var(--muted); font-size: 0.83rem; margin-top: 6px; font-weight: 300; }
+
+.scan-btn {
+  background: var(--accent);
+  color: #0f0f13;
+  border: none;
+  padding: 12px 22px;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.scan-btn:hover { background: #d4b87a; transform: translateY(-1px); }
+.scan-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* BADGES */
+.fuentes {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+.badge {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 13px;
+  font-size: 0.76rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dot { width: 7px; height: 7px; border-radius: 50%; }
+.d-uba { background: var(--uba); }
+.d-zona { background: var(--zona); }
+.d-bumeran { background: var(--bumeran); }
+
+/* STATUS */
+.status {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 13px 17px;
+  margin-bottom: 22px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.84rem;
+  color: var(--muted);
+  min-height: 50px;
+  transition: all 0.3s;
+}
+.status.loading { color: var(--accent); border-color: #3a3020; }
+.status.ok { color: var(--ok); border-color: #1a3a28; background: #0f1a14; }
+.status.error { color: var(--error); border-color: #3a1a1a; background: #1a0f0f; }
+
+.spinner {
+  width: 15px; height: 15px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* STATS */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  text-align: center;
+}
+.stat .n {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.9rem;
+  color: var(--accent);
+  line-height: 1;
+}
+.stat .l {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-top: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* FILTROS */
+.filtros {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.fbtn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 5px 13px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.15s;
+}
+.fbtn.active { border-color: var(--accent); color: var(--accent); background: var(--surface2); }
+.fbtn:hover { border-color: var(--muted); }
+
+/* CARDS */
+.list { display: flex; flex-direction: column; gap: 9px; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  transition: border-color 0.2s, background 0.2s;
+  animation: fadeUp 0.3s ease both;
+}
+.card:hover { border-color: var(--accent); background: var(--surface2); }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  flex-shrink: 0; margin-top: 5px;
+}
+.c-uba { background: var(--uba); }
+.c-zona { background: var(--zona); }
+.c-bumeran { background: var(--bumeran); }
+
+.card-body { flex: 1; min-width: 0; }
+.card-empresa { font-weight: 600; font-size: 0.93rem; }
+.card-titulo { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+.card-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.card-meta span { font-size: 0.74rem; color: var(--muted); }
+
+.card-right { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+
+.src-tag {
+  font-size: 0.68rem; padding: 3px 9px; border-radius: 12px; font-weight: 500;
+}
+.t-uba { background: #2a2010; color: var(--uba); border: 1px solid #3a3020; }
+.t-zona { background: #101a2a; color: var(--zona); border: 1px solid #1a2a3a; }
+.t-bumeran { background: #0f2a1e; color: var(--bumeran); border: 1px solid #1a3a2a; }
+
+.ver-link {
+  font-size: 0.73rem;
+  padding: 4px 11px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  text-decoration: none;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.ver-link:hover { border-color: var(--accent); color: var(--accent); }
+
+/* EMPTY */
+.empty { text-align: center; padding: 50px 20px; color: var(--muted); }
+.empty .icon { font-size: 2.8rem; margin-bottom: 10px; }
+.empty p { font-size: 0.88rem; line-height: 1.7; }
+
+.footer { margin-top: 36px; text-align: center; color: var(--muted); font-size: 0.74rem; }
+
+@media (max-width: 560px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .header h1 { font-size: 1.5rem; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div>
+      <h1>Monitor de <span>Empleos</span></h1>
+      <p>Abogado aduanero · Comercio exterior · UBA · ZonaJobs · Bumeran</p>
+    </div>
+    <button class="scan-btn" id="scanBtn" onclick="buscar()">
+      ⚡ Buscar ahora
+    </button>
+  </div>
+
+  <div class="fuentes">
+    <div class="badge"><div class="dot d-uba"></div> UBA Derecho</div>
+    <div class="badge"><div class="dot d-zona"></div> ZonaJobs</div>
+    <div class="badge"><div class="dot d-bumeran"></div> Bumeran</div>
+  </div>
+
+  <div class="status" id="status">
+    <span>⏳</span>
+    <span id="statusMsg">Presioná "Buscar ahora" para escanear las tres fuentes.</span>
+  </div>
+
+  <div id="statsPanel" style="display:none">
+    <div class="stats">
+      <div class="stat"><div class="n" id="sTotal">0</div><div class="l">Total</div></div>
+      <div class="stat"><div class="n" id="sUba">0</div><div class="l">UBA</div></div>
+      <div class="stat"><div class="n" id="sZona">0</div><div class="l">ZonaJobs</div></div>
+      <div class="stat"><div class="n" id="sBum">0</div><div class="l">Bumeran</div></div>
+    </div>
+    <div class="filtros">
+      <button class="fbtn active" onclick="filtrar('todos',this)">Todos</button>
+      <button class="fbtn" onclick="filtrar('UBA Derecho',this)">UBA Derecho</button>
+      <button class="fbtn" onclick="filtrar('ZonaJobs',this)">ZonaJobs</button>
+      <button class="fbtn" onclick="filtrar('Bumeran',this)">Bumeran</button>
+    </div>
+  </div>
+
+  <div class="list" id="list">
+    <div class="empty">
+      <div class="icon">⚖️</div>
+      <p>Iniciá la búsqueda para ver las ofertas<br>de las tres fuentes en un solo lugar.</p>
+    </div>
+  </div>
+
+  <div class="footer" id="footer"></div>
+</div>
+
+<script>
+let allOfertas = [];
+
+const PROMPT = `Sos un asistente que busca ofertas laborales de abogado aduanero y comercio exterior en Argentina.
+
+Buscá en estos sitios:
+1. https://www.derecho.uba.ar/graduados/busquedas-laborales/ — Traé TODAS las búsquedas vigentes
+2. ZonaJobs — palabras clave: "abogado aduanero", "comercio exterior", "aduana"
+3. Bumeran — palabras clave: "abogado aduanero", "comercio exterior", "aduana"
+
+Devolvé ÚNICAMENTE el siguiente JSON (sin markdown, sin texto extra):
+{"ofertas":[{"empresa":"...","titulo":"...","ubicacion":"...","modalidad":"...","vigencia":"...","link":"...","fuente":"UBA Derecho|ZonaJobs|Bumeran"}],"resumen":"..."}
+
+Si no encontrás resultados en alguna fuente, igual incluí la clave ofertas con array vacío.`;
+
+async function buscar() {
+  const btn = document.getElementById('scanBtn');
+  const st = document.getElementById('status');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Escaneando...';
+  st.className = 'status loading';
+  st.innerHTML = '<span class="spinner"></span><span id="statusMsg">Consultando UBA Derecho, ZonaJobs y Bumeran...</span>';
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: PROMPT,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: [{
+          role: 'user',
+          content: `Buscá ofertas laborales de abogado aduanero y comercio exterior. Hoy es ${new Date().toLocaleDateString('es-AR')}. Devolvé el JSON.`
+        }]
+      })
+    });
+
+    if (!resp.ok) {
+      const e = await resp.json().catch(() => ({}));
+      throw new Error(e?.error?.message || `HTTP ${resp.status}`);
+    }
+
+    const data = await resp.json();
+
+    let texto = '';
+    for (const b of (data.content || [])) {
+      if (b.type === 'text') texto += b.text;
+    }
+
+    const match = texto.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('No se encontró JSON en la respuesta');
+    const result = JSON.parse(match[0]);
+    const ofertas = result.ofertas || [];
+    const resumen = result.resumen || '';
+
+    allOfertas = ofertas;
+    renderOfertas(ofertas);
+    renderStats(ofertas);
+
+    document.getElementById('statsPanel').style.display = 'block';
+    const hora = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+    st.className = 'status ok';
+    st.innerHTML = `<span>✓</span><span>${ofertas.length} oferta(s) encontrada(s) · ${resumen} · ${hora}</span>`;
+    document.getElementById('footer').textContent = `Última búsqueda: ${new Date().toLocaleDateString('es-AR')} ${hora} · Volvé mañana para novedades`;
+
+  } catch (err) {
+    st.className = 'status error';
+    st.innerHTML = `<span>✗</span><span>Error: ${err.message}</span>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '⚡ Buscar ahora';
+  }
+}
+
+function renderOfertas(ofertas) {
+  const list = document.getElementById('list');
+  if (!ofertas.length) {
+    list.innerHTML = `<div class="empty"><div class="icon">🔍</div><p>No se encontraron ofertas.<br>Intentá con otro filtro o volvé mañana.</p></div>`;
+    return;
+  }
+
+  const dotMap = { 'UBA Derecho': 'c-uba', 'ZonaJobs': 'c-zona', 'Bumeran': 'c-bumeran' };
+  const tagMap = { 'UBA Derecho': 't-uba', 'ZonaJobs': 't-zona', 'Bumeran': 't-bumeran' };
+
+  list.innerHTML = ofertas.map((o, i) => `
+    <div class="card" style="animation-delay:${i * 0.04}s">
+      <div class="card-dot ${dotMap[o.fuente] || 'c-uba'}"></div>
+      <div class="card-body">
+        <div class="card-empresa">${o.empresa || '—'}</div>
+        ${o.titulo ? `<div class="card-titulo">${o.titulo}</div>` : ''}
+        <div class="card-meta">
+          ${o.ubicacion ? `<span>📍 ${o.ubicacion}</span>` : ''}
+          ${o.modalidad ? `<span>🏠 ${o.modalidad}</span>` : ''}
+          ${o.vigencia ? `<span>📅 ${o.vigencia}</span>` : ''}
+        </div>
+      </div>
+      <div class="card-right">
+        <span class="src-tag ${tagMap[o.fuente] || 't-uba'}">${o.fuente}</span>
+        ${o.link ? `<a href="${o.link}" target="_blank" class="ver-link">Ver →</a>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function renderStats(ofertas) {
+  document.getElementById('sTotal').textContent = ofertas.length;
+  document.getElementById('sUba').textContent   = ofertas.filter(o => o.fuente === 'UBA Derecho').length;
+  document.getElementById('sZona').textContent  = ofertas.filter(o => o.fuente === 'ZonaJobs').length;
+  document.getElementById('sBum').textContent   = ofertas.filter(o => o.fuente === 'Bumeran').length;
+}
+
+function filtrar(fuente, btn) {
+  document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderOfertas(fuente === 'todos' ? allOfertas : allOfertas.filter(o => o.fuente === fuente));
+}
+</script>
+</body>
+</html>
